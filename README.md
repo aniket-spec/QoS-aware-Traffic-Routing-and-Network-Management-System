@@ -39,7 +39,15 @@ The **QoS-Aware Intelligent Traffic Routing and Network Management System** addr
 ├── README.md                   # Comprehensive system documentation & user manual
 ├── app.py                      # Interactive Streamlit web dashboard
 ├── docs/
-│   └── TECHNICAL_DESIGN.md     # In-depth technical architecture, lifecycle & mathematical models
+│   ├── TECHNICAL_DESIGN.md     # In-depth technical architecture, lifecycle & mathematical models
+│   ├── TEST_RESULTS.md         # Automated test verification results and execution logs
+│   └── pytest_run.log          # Raw console log output from pytest execution
+├── screenshots/                # Real dashboard demonstration captures
+│   ├── normal_voip_metrics.png
+│   ├── bulk_data_topology.png
+│   ├── bulk_data_metrics.png
+│   ├── network_congestion_topology.png
+│   └── network_congestion_metrics.png
 ├── src/
 │   ├── __init__.py
 │   ├── network/                # Network Topology & Link QoS Modeling
@@ -73,30 +81,71 @@ The **QoS-Aware Intelligent Traffic Routing and Network Management System** addr
 
 ---
 
-## 4. Installation and Running on Windows
+## 4. Installation and Execution Procedure
 
-Open **PowerShell** in the project root directory and execute the following commands:
+### Prerequisites
+- **Python**: `>=3.10` (Tested and verified on Python `3.11.9`)
+- **Package Manager**: `pip`
 
+### Step 1: Clone or Open the Repository
+Open a terminal (PowerShell on Windows, or Bash on Linux/macOS) in the project root directory.
+
+### Step 2: Set Up a Virtual Environment
+
+**On Windows (PowerShell):**
 ```powershell
 python -m venv .venv
 .venv\Scripts\activate
+```
+
+**On Linux / macOS (Bash):**
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+```
+
+### Step 3: Install Required Dependencies
+Upgrade `pip` and install the declared packages from `requirements.txt`:
+```bash
+python -m pip install --upgrade pip
 pip install -r requirements.txt
+```
+
+### Step 4: Run the Automated Test Suite
+Verify that all unit and integration tests pass before launching the dashboard:
+```bash
 pytest -v
+```
+*(All 73 tests should pass. See [`docs/TEST_RESULTS.md`](docs/TEST_RESULTS.md) for full execution logs).*
+
+### Step 5: Launch the Interactive Dashboard
+Launch the Streamlit web application using the exact command:
+```bash
 streamlit run app.py
 ```
 
-Once started, open your web browser and navigate to:
+### Step 6: Access the Dashboard in Your Browser
+Once started, Streamlit will serve the application locally. Open your web browser and navigate to:
 **`http://localhost:8501`**
+
+*(If port 8501 is already in use, Streamlit will automatically increment to `http://localhost:8502` or display the active URL in your terminal).*
 
 ---
 
-## 5. Automated Testing
+## 5. Automated Testing and Verification
 
-The project includes an extensive automated test suite consisting of **73 tests** across 6 test modules:
+The project includes an extensive automated test suite consisting of **73 tests** across 6 test modules, verifying complete system correctness, algorithmic determinism, and UI graph generation.
 
+### Run Automated Tests:
 ```powershell
 pytest -v
 ```
+
+### Verified Test Run Results:
+- **Execution Date**: October 26, 2026
+- **Test Framework**: `pytest 9.1.1` on Python `3.11.9`
+- **Result**: **73 passed, 0 failed** in 0.58s
+- **Detailed Verification Report**: See [`docs/TEST_RESULTS.md`](docs/TEST_RESULTS.md) for full module-by-module analysis and execution logs.
 
 ### Test Suite Breakdown:
 - **`tests/test_topology.py` (24 tests)**: Verifies node count, link property ranges, dataclass validations, undirected graph symmetry, mutation safety, network reset functionality, and disabled link handling.
@@ -278,7 +327,42 @@ The Streamlit dashboard (`app.py`) provides an interactive interface for live ex
 
 ---
 
-## 12. Representative Routing Comparison (Verified Implementation Data)
+## 12. Dashboard Screenshots
+
+The screenshots below demonstrate genuine executions of the interactive Streamlit dashboard (`http://localhost:8501`) across evaluated scenarios and traffic profiles:
+
+### 1. Normal Network Scenario — Voice (VoIP) Profile
+Demonstrates baseline shortest-path routing vs. QoS-aware routing under default conditions:
+- **Baseline Shortest Path**: Traverses `Node_1 -> Node_4 -> Node_7` (2 hops) with high end-to-end delay (65.0 ms), violating the 30.0 ms VoIP latency SLA.
+- **QoS-Aware Routing**: Selects the low-latency express path `Node_1 -> Node_3 -> Node_6 -> Node_7` (3 hops, 11.0 ms delay, 0.15% packet loss), satisfying all SLA requirements with a composite QoS cost of 27.0.
+
+![Normal Network VoIP Performance Metrics](screenshots/normal_voip_metrics.png)
+
+---
+
+### 2. Normal Network Scenario — Bulk Data Transfer Profile
+Demonstrates high-throughput, latency-tolerant routing where QoS routing prioritizes capacity over raw hop count:
+- **Active Path Traversal**: Baseline traverses the direct 2-hop satellite corridor `Node_1 -> Node_4 -> Node_7` (shown in blue), while QoS routing selects `Node_1 -> Node_3 -> Node_5 -> Node_7` (shown in green).
+- **Comparative Metrics**: Baseline is constrained by a 100.0 Mbps bottleneck and achieves only 100.0 Mbps throughput with 3.47% packet loss. QoS routing achieves the full offered rate of 150.0 Mbps through a 400.0 Mbps bottleneck with 0.30% packet loss and a QoS cost of 33.5.
+
+![Bulk Data Transfer Network Topology Traversal](screenshots/bulk_data_topology.png)
+
+![Bulk Data Transfer Comparative Performance Metrics](screenshots/bulk_data_metrics.png)
+
+---
+
+### 3. Network Congestion Scenario — Dynamic Traffic Shift
+Demonstrates dynamic corridor migration when severe congestion (85%) is injected onto express links:
+- **Active Path Traversal**: QoS-aware routing detects the elevated delay and congestion on the lower tier and automatically migrates traffic to the upper high-speed fiber backbone `Node_1 -> Node_2 -> Node_5 -> Node_7` (green line). Baseline remains fixed on the satellite link (blue line).
+- **Comparative Metrics**: Baseline experiences 65.0 ms delay and 42.5% average congestion, violating SLA. QoS routing achieves 18.0 ms end-to-end delay, 1000.0 Mbps bottleneck bandwidth, and 0.40% packet loss, remaining fully viable.
+
+![Network Congestion Dynamic Topology Traversal](screenshots/network_congestion_topology.png)
+
+![Network Congestion Comparative Performance Metrics](screenshots/network_congestion_metrics.png)
+
+---
+
+## 13. Representative Routing Comparison (Verified Implementation Data)
 
 The following table compares Baseline Shortest-Path vs. QoS-Aware Routing for **Voice (VoIP)** traffic between `Node_1` and `Node_7` under default conditions. All values have been verified against the executing codebase:
 
@@ -309,18 +393,19 @@ The following table compares Baseline Shortest-Path vs. QoS-Aware Routing for **
 
 ---
 
-## 13. Current Limitations and Future Improvements
+## 14. Current Limitations and Future Improvements
 
 ### Current Limitations
-1. **Configured Congestion vs. Queuing Simulation**: Link congestion is modeled as a static percentage attribute rather than dynamic packet queue lengths or buffer overflow drops.
-2. **Throughput Upper-Bound Modeling**: Estimated throughput is bounded by $\min(\text{offered}, \text{bottleneck})$. TCP dynamics (Slow Start, congestion window AIMD, retransmission timers) are not modeled.
-3. **Statistical Independence of Packet Drops**: Packet loss across multiple hops is treated as statistically independent Bernoulli trials without accounting for bursty, correlated drops.
-4. **Instantaneous Routing Convergence**: Route recalculation occurs immediately upon state changes; distributed routing convergence delays, keepalive timeouts, and transient loops are not simulated.
-5. **Path Search Complexity**: Candidate route selection enumerates simple paths via NetworkX. While fast for 7–20 nodes, exhaustive path enumeration does not scale to massive topologies without polynomial heuristics.
+1. **Graph-Based Simulation**: This system is a graph-based network simulation implemented with NetworkX, not an inline hardware router controller or physical SDN switch. It does not transmit or forward raw physical network packets.
+2. **Configured Telemetry vs. Live Probing**: Link delay, congestion percentages, and packet loss are configured simulation parameters and scenario inputs rather than real-time hardware telemetry.
+3. **Throughput Upper-Bound Estimation**: Throughput is mathematically estimated from offered traffic rate and bottleneck link capacity ($\min(\text{Offered Traffic Rate}, \text{Bottleneck Bandwidth})$), rather than measured from physical TCP window transfers or socket throughput.
+4. **Packet Loss Independence**: Multi-hop packet loss is modeled using statistically independent Bernoulli trials without modeling correlated queue overflow bursts.
+5. **Instantaneous Convergence**: Routing recalculations occur deterministically in simulation memory without distributed protocol convergence overheads, link-state advertisement propagation delays, or transient loops.
+6. **Path Enumeration Scalability**: Candidate route discovery uses simple path exploration suitable for edge-to-core campus networks (7–20 nodes). High-tier carrier networks require polynomial heuristics or constrained Dijkstra variants.
 
 ### Future Improvements
 - **Dynamic Packet-Level Queuing**: Integrate discrete-event simulation (e.g., SimPy) to model FIFO/Priority packet queues and jitter buffers.
 - **Adaptive Reinforcement Learning**: Implement Q-learning or Multi-Agent Reinforcement Learning (MARL) to dynamically tune the congestion coefficient $\alpha$ based on real-time traffic demand.
 - **Multi-Path Routing (ECMP / MPTCP)**: Extend the routing engine to split high-bandwidth flows across multiple parallel corridors simultaneously.
 - **Telemetry Ingestion**: Add REST or gRPC endpoints to ingest live telemetry from physical SDN controllers (e.g., OpenFlow or P4).
-- **Formal Technical Design**: Refer to [docs/TECHNICAL_DESIGN.md](file:///c:/Users/ADMIN/Desktop/QoS-aware-Traffic-Routing-and-Network-Management-System/QoS-aware-Traffic-Routing-and-Network-Management-System/docs/TECHNICAL_DESIGN.md) for full architecture specifications.
+- **Formal Technical Design**: Refer to [`docs/TECHNICAL_DESIGN.md`](docs/TECHNICAL_DESIGN.md) for full architecture specifications.
